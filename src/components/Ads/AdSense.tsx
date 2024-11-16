@@ -9,7 +9,7 @@ const AdSense: React.FC = () => {
     script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
     script.async = true;
     script.crossOrigin = "anonymous";
-    script.dataset.adClient = "ca-pub-XXXXXX"; // Ganti dengan ID AdSense Anda
+    script.dataset.adClient = "ca-pub-1477150496838759"; // Ganti dengan ID AdSense Anda
     document.head.appendChild(script);
 
     return () => {
@@ -22,10 +22,11 @@ const AdSense: React.FC = () => {
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}
-        data-ad-client="ca-pub-XXXXXX"  // Ganti dengan ID AdSense Anda
-        data-ad-slot="XXXXXX"           // Ganti dengan Slot Iklan Anda
+        data-ad-client="ca-pub-1477150496838759"  // Ganti dengan ID AdSense Anda
+        data-ad-slot="1298004952"           // Ganti dengan Slot Iklan Anda
         data-ad-format="auto"
       />
+      
     </div>
   );
 };
