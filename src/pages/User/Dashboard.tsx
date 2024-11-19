@@ -1,29 +1,53 @@
-// src/pages/User/Dashboard.tsx
-
 import React from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { useUserCourses } from '../../hooks/useUserCourses';
-// import { useUserCourses } from '../../hooks/useUserCourses'; // Hook untuk mengambil data kursus pengguna
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
-  const { courses, progress } = useUserCourses(user?.uid);
-
   return (
-    <div>
-      <h2>Welcome, {user?.displayName || 'User'}!</h2>
-      <div>
-        <h3>Your Courses</h3>
-        {courses.length > 0 ? (
-          courses.map((course) => (
-            <div key={course.id}>
-              <h4>{course.title}</h4>
-              <p>Progress: {progress[course.id] || 0}%</p>
+    <div className="container my-5">
+      <h2 className="text-center mb-4">Dashboard</h2>
+
+      {/* Stats Section */}
+      <div className="row mb-4">
+        <div className="col-md-4">
+          <div className="card shadow-sm text-center p-3">
+            <h4>Enrolled Courses</h4>
+            <p className="display-4 text-primary">5</p>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card shadow-sm text-center p-3">
+            <h4>Completed Courses</h4>
+            <p className="display-4 text-success">3</p>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card shadow-sm text-center p-3">
+            <h4>Total Hours</h4>
+            <p className="display-4 text-info">120</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Current Courses */}
+      <h3 className="mb-3">Your Current Courses</h3>
+      <div className="row">
+        <div className="col-md-6">
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <h5>Web Development 101</h5>
+              <p>Learn HTML, CSS, and JavaScript.</p>
+              <button className="btn btn-primary btn-sm">Continue</button>
             </div>
-          ))
-        ) : (
-          <p>You have not enrolled in any courses yet.</p>
-        )}
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <h5>UI/UX Design Basics</h5>
+              <p>Master the fundamentals of design principles.</p>
+              <button className="btn btn-primary btn-sm">Continue</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
