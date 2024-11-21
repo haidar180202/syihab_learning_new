@@ -1,4 +1,4 @@
-import AdSense from "./Ads/AdSense";
+import AdSense from "./ads/AdSense";
 import AudioPlayer from "./AudioPlayer";
 import TextContent from "./TextContent";
 import VideoPlayer from "./VideoPlayer";
