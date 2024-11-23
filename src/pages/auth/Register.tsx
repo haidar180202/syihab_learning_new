@@ -1,112 +1,113 @@
-import React, { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../../config/firebase'; // Pastikan konfigurasi Firebase sudah benar
+import React, { useState } from "react";
 
-const Register: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { setDoc, doc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../../config/firebase";
 
-  const auth = getAuth();
+const Register = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const { name, email, password } = formData;
+
+    if (!name || !email || password.length < 6) {
+      setError("All fields are required, and password must be at least 6 characters.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Buat akun baru di Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      // Ambil UID dari pengguna yang baru dibuat
-      const { uid } = userCredential.user;
+      await updateProfile(user, { displayName: name });
 
-      // Simpan data pengguna ke Firestore
-      await setDoc(doc(db, 'users', uid), {
-        name: name || '', // Nama default jika kosong
-        email: email,
-        role: 'user', // Role default
-        createdAt: new Date().toISOString(), // Tanggal pembuatan
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name,
+        email,
+        createdAt: new Date(),
       });
 
-      setMessage({ type: 'success', text: 'Registration successful. You can now log in!' });
-
-      // Reset form
-      setEmail('');
-      setPassword('');
-      setName('');
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Registration failed. Please try again.' });
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Registration failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container my-5 d-flex justify-content-center">
-      <div className="card shadow-lg p-4" style={{ maxWidth: '400px', width: '100%' }}>
-        <div className="text-center mb-4">
-          <h1 className="display-6 text-primary">Syihab Learning</h1>
-          <h3 className="text-muted">Create Your Account</h3>
-        </div>
-
-        {/* Feedback */}
-        {message && (
-          <div className={`alert alert-${message.type === 'success' ? 'success' : 'danger'}`} role="alert">
-            {message.text}
-          </div>
-        )}
-
-        {/* Form */}
+    <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+      <div className="card shadow-lg p-5" style={{ maxWidth: "500px", width: "100%" }}>
+        <h2 className="text-center text-primary mb-4">
+          Welcome to <span className="fw-bold">Syihab Learning</span>
+        </h2>
+        <p className="text-muted text-center mb-4">Create your account and start your journey!</p>
         <form onSubmit={handleRegister}>
-          {/* Input Name */}
+          {error && <div className="alert alert-danger">{error}</div>}
           <div className="mb-3">
             <label htmlFor="name" className="form-label">Full Name</label>
             <input
               type="text"
-              className="form-control"
+              className="form-control form-control-lg"
               id="name"
-              placeholder="Enter your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              name="name"
+              placeholder="Enter your full name"
+              value={formData.name}
+              onChange={handleChange}
               required
             />
           </div>
-
-          {/* Input Email */}
           <div className="mb-3">
-            <label htmlFor="email" className="form-label">Email address</label>
+            <label htmlFor="email" className="form-label">Email Address</label>
             <input
               type="email"
-              className="form-control"
+              className="form-control form-control-lg"
               id="email"
+              name="email"
               placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
               required
             />
           </div>
-
-          {/* Input Password */}
           <div className="mb-3">
             <label htmlFor="password" className="form-label">Password</label>
             <input
               type="password"
-              className="form-control"
+              className="form-control form-control-lg"
               id="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              placeholder="Create a strong password"
+              value={formData.password}
+              onChange={handleChange}
               required
             />
           </div>
-
-          {/* Submit Button */}
-          <button type="submit" className="btn btn-primary w-100">
-            Register
+          <button type="submit" className="btn btn-primary btn-lg w-100" disabled={loading}>
+            {loading ? "Registering..." : "Create Account"}
           </button>
         </form>
-
         <p className="text-center mt-3">
-          Already have an account? <a href="/auth/login" className="fw-bold text-primary">Login</a>
+          Already have an account?{" "}
+          <a href="/login" className="text-primary text-decoration-none fw-bold">Login here</a>
         </p>
       </div>
     </div>

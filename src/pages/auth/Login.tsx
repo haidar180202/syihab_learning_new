@@ -1,59 +1,73 @@
-import React from 'react';
+import React, { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../../config/firebase";
 
 const Login: React.FC = () => {
-  return (
-    <div className="container my-5 d-flex justify-content-center">
-      {/* Card with Bootstrap shadow and animation */}
-      <div
-        className="card shadow-lg p-4 animate__animated animate__fadeIn"
-        style={{ maxWidth: '400px', width: '100%' }}
-      >
-        {/* Header with app name */}
-        <div className="text-center mb-4">
-          <h3 className="display-4 text-primary">Syihab Learning</h3>
-          <h3 className="text-muted">Login to Your Account</h3>
-        </div>
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-        {/* Form Section */}
-        <form>
-          {/* Email Input */}
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/dashboard"); // Redirect to dashboard on success
+    } catch (err: any) {
+      setError("Invalid email or password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+      <div className="card shadow-lg p-5" style={{ maxWidth: "500px", width: "100%" }}>
+        <div className="text-center mb-4">
+          <h2 className="text-primary">Welcome Back!</h2>
+          <p className="text-muted">Login to continue to <span className="fw-bold">Syihab Learning</span></p>
+        </div>
+        <form onSubmit={handleLogin}>
+          {error && <div className="alert alert-danger">{error}</div>}
           <div className="mb-3">
-            <label htmlFor="email" className="form-label">Email address</label>
+            <label htmlFor="email" className="form-label">Email Address</label>
             <input
               type="email"
-              className="form-control"
+              className="form-control form-control-lg"
               id="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-
-          {/* Password Input */}
           <div className="mb-3">
             <label htmlFor="password" className="form-label">Password</label>
             <input
               type="password"
-              className="form-control"
+              className="form-control form-control-lg"
               id="password"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-
-          {/* Submit Button */}
-          <button type="submit" className="btn btn-primary w-100 mb-3">
-            Login
+          <button type="submit" className="btn btn-primary btn-lg w-100" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </button>
-
-          {/* Forgot Password Link */}
-          <div className="d-flex justify-content-between mb-3">
-            <a href="/forgot-password" className="text-muted">Forgot Password?</a>
-          </div>
         </form>
-
-        {/* Register Link */}
-        <p className="text-center mt-3">
-          Don't have an account? <a href="/auth/register" className="fw-bold text-primary">Register</a>
+        <p className="text-center mt-4">
+          Don't have an account?{" "}
+          <a href="/register" className="text-primary fw-bold text-decoration-none">Register</a>
+        </p>
+        <p className="text-center mt-2">
+          <a href="/forgot-password" className="text-muted text-decoration-none">Forgot Password?</a>
         </p>
       </div>
     </div>
