@@ -6,17 +6,38 @@ const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     try {
+      // Validasi format email
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError("Please enter a valid email address.");
+        setLoading(false);
+        return;
+      }
+
       await sendPasswordResetEmail(auth, email);
       setSuccess("Password reset email sent! Check your inbox.");
     } catch (err: any) {
-      setError("Failed to send reset email. Please try again.");
+      // Tangani error berdasarkan kode
+      switch (err.code) {
+        case "auth/user-not-found":
+          setError("No account found with this email.");
+          break;
+        case "auth/invalid-email":
+          setError("Invalid email address.");
+          break;
+        default:
+          setError("Failed to send reset email. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,7 +60,9 @@ const ForgotPassword: React.FC = () => {
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary w-100">Send Reset Email</button>
+          <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            {loading ? "Sending..." : "Send Reset Email"}
+          </button>
         </form>
       </div>
     </div>

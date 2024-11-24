@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../config/firebase";
+import { auth, db } from "../../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -16,8 +17,26 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard"); // Redirect to dashboard on success
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Ambil role dari Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const role = userData.role;
+
+        // Redirect berdasarkan role
+        if (role === "admin") {
+          navigate("/admin-dashboard");
+        } else if (role === "user") {
+          navigate("/dashboard");
+        } else {
+          setError("Unauthorized role.");
+        }
+      } else {
+        setError("User data not found.");
+      }
     } catch (err: any) {
       setError("Invalid email or password.");
     } finally {
@@ -30,7 +49,9 @@ const Login: React.FC = () => {
       <div className="card shadow-lg p-5" style={{ maxWidth: "500px", width: "100%" }}>
         <div className="text-center mb-4">
           <h2 className="text-primary">Welcome Back!</h2>
-          <p className="text-muted">Login to continue to <span className="fw-bold">Syihab Learning</span></p>
+          <p className="text-muted">
+            Login to continue to <span className="fw-bold">Syihab Learning</span>
+          </p>
         </div>
         <form onSubmit={handleLogin}>
           {error && <div className="alert alert-danger">{error}</div>}

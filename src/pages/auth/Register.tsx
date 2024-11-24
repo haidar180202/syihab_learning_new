@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
@@ -10,12 +9,13 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
+    role: "user", // Default role
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -24,9 +24,9 @@ const Register = () => {
     setLoading(true);
     setError("");
 
-    const { name, email, password } = formData;
+    const { name, email, password, role } = formData;
 
-    if (!name || !email || password.length < 6) {
+    if (!name || !email || password.length < 6 || !role) {
       setError("All fields are required, and password must be at least 6 characters.");
       setLoading(false);
       return;
@@ -42,6 +42,7 @@ const Register = () => {
         uid: user.uid,
         name,
         email,
+        role, // Save role to Firestore
         createdAt: new Date(),
       });
 
@@ -100,6 +101,21 @@ const Register = () => {
               onChange={handleChange}
               required
             />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="role" className="form-label">Role</label>
+            <select
+              className="form-select form-select-lg"
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+            </select>
           </div>
           <button type="submit" className="btn btn-primary btn-lg w-100" disabled={loading}>
             {loading ? "Registering..." : "Create Account"}

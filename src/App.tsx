@@ -2,8 +2,10 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import Dashboard from "./pages/user/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import Register from "./pages/auth/Register";
+import Course from "./pages/Course";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 
 
 const App: React.FC = () => {
@@ -12,6 +14,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
           path="/dashboard"
           element={
@@ -21,7 +24,15 @@ const App: React.FC = () => {
           }
         />
 
-        
+        <Route
+          path="/courses"
+          element={
+            <ProtectedRoute>
+              <Course />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </Router>
   );
