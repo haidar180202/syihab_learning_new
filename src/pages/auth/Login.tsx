@@ -17,21 +17,25 @@ const Login: React.FC = () => {
     setError("");
 
     try {
+      // Melakukan login dengan Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Ambil role dari Firestore
+      // Ambil role dari Firestore berdasarkan UID pengguna
       const userDoc = await getDoc(doc(db, "users", user.uid));
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        const role = userData.role;
+        const role = userData?.role;
+
+        // Simpan role dan UID pengguna di localStorage
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("userUID", user.uid);
 
         // Redirect berdasarkan role
-        if (role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (role === "user") {
-          navigate("/dashboard");
-        } else {
+        if (role === "admin" || role === 'user') {
+          navigate("/dashboard"); // Arahkan ke dashboard admin
+        }else {
           setError("Unauthorized role.");
         }
       } else {

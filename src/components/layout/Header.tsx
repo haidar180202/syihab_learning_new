@@ -10,6 +10,8 @@ const Header: React.FC = () => {
     try {
       await signOut(auth);
       alert("You have successfully logged out.");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userUID");
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
