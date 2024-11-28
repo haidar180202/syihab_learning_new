@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Register from "./pages/auth/Register";
 import Course from "./pages/Course";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import CourseDetail from "./pages/CourseDetail";
 
 
 const App: React.FC = () => {
@@ -29,6 +30,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <Course />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/course/:id"
+          element={
+            <ProtectedRoute>
+              <CourseDetail />
             </ProtectedRoute>
           }
         />
