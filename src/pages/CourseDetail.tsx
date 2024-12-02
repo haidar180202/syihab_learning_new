@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
@@ -10,6 +10,10 @@ const CourseDetail: React.FC = () => {
     const [course, setCourse] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [subChapter, setSubChapter] = useState({
+        subChapterName: "",
+        details: "",
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -61,6 +65,31 @@ const CourseDetail: React.FC = () => {
         }
     };
 
+    const handleSubChapterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setSubChapter({ ...subChapter, [name]: value });
+    };
+
+    const handleAddSubChapter = async () => {
+        if (!subChapter.subChapterName || !subChapter.details) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, "master sub bab"), {
+                courseId: id,
+                subChapterName: subChapter.subChapterName,
+                details: subChapter.details,
+            });
+            alert("Sub-chapter added successfully.");
+            setSubChapter({ subChapterName: "", details: "" }); // Reset form
+        } catch (error) {
+            console.error("Error adding sub-chapter:", error);
+            alert("Failed to add sub-chapter. Please try again.");
+        }
+    };
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -76,14 +105,13 @@ const CourseDetail: React.FC = () => {
                         className="img-fluid"
                     />
                     <p>{course.description}</p>
-                    {/* Tampilkan tombol edit jika role admin */}
                     {isAdmin && (
                         <div>
                             <button
                                 className="btn btn-warning"
                                 onClick={() => navigate(`/course/edit/${id}`)}
                             >
-                                Edit Course
+                                Add Course
                             </button>
                             <button
                                 className="btn btn-danger ms-2"
@@ -96,7 +124,35 @@ const CourseDetail: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Tampilkan bab materi hanya jika ada */}
+                    {isAdmin && (
+                        <div className="mt-4">
+                            <h3>Add New Sub-Chapter</h3>
+                            <div className="mb-3">
+                                <label className="form-label">Sub-Chapter Name</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="subChapterName"
+                                    value={subChapter.subChapterName}
+                                    onChange={handleSubChapterChange}
+                                />
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Details</label>
+                                <textarea
+                                    className="form-control"
+                                    name="details"
+                                    rows={3}
+                                    value={subChapter.details}
+                                    onChange={handleSubChapterChange}
+                                ></textarea>
+                            </div>
+                            <button className="btn btn-primary" onClick={handleAddSubChapter}>
+                                Add Sub-Chapter
+                            </button>
+                        </div>
+                    )}
+
                     {course.sections && course.sections.length > 0 ? (
                         <div className="mt-4">
                             <h3>Course Sections</h3>
@@ -104,7 +160,6 @@ const CourseDetail: React.FC = () => {
                                 <div key={index} className="section">
                                     <h4>{section.sectionTitle}</h4>
                                     <p>{section.content}</p>
-                                    {/* Tampilkan tombol edit jika role admin */}
                                     {isAdmin && (
                                         <button
                                             className="btn btn-warning"
