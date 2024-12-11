@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, getDoc, collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
@@ -10,6 +10,7 @@ const CourseDetail: React.FC = () => {
     const [course, setCourse] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [subChapters, setSubChapters] = useState<any[]>([]);
     const [subChapter, setSubChapter] = useState({
         subChapterName: "",
         details: "",
@@ -17,7 +18,6 @@ const CourseDetail: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Pengecekan role user
         const validateUserRole = async () => {
             const storedRole = localStorage.getItem("userRole");
             const uid = localStorage.getItem("userUID");
@@ -32,7 +32,6 @@ const CourseDetail: React.FC = () => {
             }
         };
 
-        // Fetch kursus berdasarkan ID
         const fetchCourse = async () => {
             try {
                 const courseDoc = await getDoc(doc(db, "courses", id || ""));
@@ -41,8 +40,20 @@ const CourseDetail: React.FC = () => {
                 } else {
                     console.log("Course not found");
                 }
+
+                // Fetch related sub chapters
+                const subChapterQuery = query(
+                    collection(db, "master sub bab"),
+                    where("courseId", "==", id)
+                );
+                const subChapterSnapshot = await getDocs(subChapterQuery);
+                const fetchedSubChapters = subChapterSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+                setSubChapters(fetchedSubChapters);
             } catch (error) {
-                console.error("Error fetching course:", error);
+                console.error("Error fetching data:", error);
             } finally {
                 setLoading(false);
             }
@@ -105,6 +116,11 @@ const CourseDetail: React.FC = () => {
                         className="img-fluid"
                     />
                     <p>{course.description}</p>
+
+                    <button className="btn btn-secondary mb-4" onClick={() => navigate("/courses")}>
+                        Back to Courses
+                    </button>
+
                     {isAdmin && (
                         <div>
                             <button
@@ -113,14 +129,7 @@ const CourseDetail: React.FC = () => {
                             >
                                 Add Course
                             </button>
-                            <button
-                                className="btn btn-danger ms-2"
-                                onClick={() => {
-                                    // Tambahkan logika untuk menghapus course
-                                }}
-                            >
-                                Delete Course
-                            </button>
+                            <button className="btn btn-danger ms-2">Delete Course</button>
                         </div>
                     )}
 
@@ -153,27 +162,19 @@ const CourseDetail: React.FC = () => {
                         </div>
                     )}
 
-                    {course.sections && course.sections.length > 0 ? (
-                        <div className="mt-4">
-                            <h3>Course Sections</h3>
-                            {course.sections.map((section: any, index: number) => (
-                                <div key={index} className="section">
-                                    <h4>{section.sectionTitle}</h4>
-                                    <p>{section.content}</p>
-                                    {isAdmin && (
-                                        <button
-                                            className="btn btn-warning"
-                                            onClick={() => navigate(`/course/edit-section/${id}/${index}`)}
-                                        >
-                                            Edit Section
-                                        </button>
-                                    )}
+                    <div className="mt-4">
+                        <h3>Sub Chapters</h3>
+                        {subChapters.length > 0 ? (
+                            subChapters.map(sub => (
+                                <div key={sub.id} className="sub-chapter mb-3">
+                                    <h4>{sub.subChapterName}</h4>
+                                    <p>{sub.details}</p>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p>No sections available yet.</p>
-                    )}
+                            ))
+                        ) : (
+                            <p>No sub-chapters available yet.</p>
+                        )}
+                    </div>
                 </>
             ) : (
                 <p>Course not found</p>
