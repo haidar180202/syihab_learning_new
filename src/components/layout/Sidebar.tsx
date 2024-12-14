@@ -5,7 +5,7 @@ const Sidebar: React.FC = () => {
   return (
     <aside className="bg-light border-end" style={{ width: "250px", minHeight: "100vh" }}>
       <div className="p-3">
-        <h4 className="text-primary">BelajarApp</h4>
+        <h4 className="text-primary fw-bold">Syihab Learning</h4>
         <ul className="list-unstyled mt-4">
           <li className="mb-3">
             <Link to="/dashboard" className="text-decoration-none text-dark">
