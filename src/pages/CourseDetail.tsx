@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, getDoc, collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import {
+    doc,
+    getDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
 
 const CourseDetail: React.FC = () => {
-    const { id } = useParams(); // Mendapatkan ID dari URL
+    const { id } = useParams();
     const [course, setCourse] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [subChapters, setSubChapters] = useState<any[]>([]);
-    const [subChapter, setSubChapter] = useState({
+    const [showModal, setShowModal] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [currentSubChapter, setCurrentSubChapter] = useState<any>({
         subChapterName: "",
         details: "",
     });
@@ -41,13 +53,12 @@ const CourseDetail: React.FC = () => {
                     console.log("Course not found");
                 }
 
-                // Fetch related sub chapters
                 const subChapterQuery = query(
                     collection(db, "master sub bab"),
                     where("courseId", "==", id)
                 );
                 const subChapterSnapshot = await getDocs(subChapterQuery);
-                const fetchedSubChapters = subChapterSnapshot.docs.map(doc => ({
+                const fetchedSubChapters = subChapterSnapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
@@ -76,108 +87,204 @@ const CourseDetail: React.FC = () => {
         }
     };
 
-    const handleSubChapterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setSubChapter({ ...subChapter, [name]: value });
+    const handleModalOpen = (subChapter: any = null) => {
+        setIsEditMode(!!subChapter);
+        setCurrentSubChapter(subChapter || { subChapterName: "", details: "" });
+        setShowModal(true);
     };
 
-    const handleAddSubChapter = async () => {
-        if (!subChapter.subChapterName || !subChapter.details) {
+    const handleModalClose = () => {
+        setShowModal(false);
+    };
+
+    const handleSubChapterChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
+        setCurrentSubChapter({ ...currentSubChapter, [name]: value });
+    };
+
+    const handleSaveSubChapter = async () => {
+        if (!currentSubChapter.subChapterName || !currentSubChapter.details) {
             alert("Please fill in all fields.");
             return;
         }
 
         try {
-            await addDoc(collection(db, "master sub bab"), {
-                courseId: id,
-                subChapterName: subChapter.subChapterName,
-                details: subChapter.details,
-            });
-            alert("Sub-chapter added successfully.");
-            setSubChapter({ subChapterName: "", details: "" }); // Reset form
+            if (isEditMode) {
+                const subChapterRef = doc(db, "master sub bab", currentSubChapter.id);
+                await updateDoc(subChapterRef, {
+                    subChapterName: currentSubChapter.subChapterName,
+                    details: currentSubChapter.details,
+                });
+                alert("Sub-chapter updated successfully.");
+            } else {
+                await addDoc(collection(db, "master sub bab"), {
+                    courseId: id,
+                    subChapterName: currentSubChapter.subChapterName,
+                    details: currentSubChapter.details,
+                });
+                alert("Sub-chapter added successfully.");
+            }
+            setShowModal(false);
         } catch (error) {
-            console.error("Error adding sub-chapter:", error);
-            alert("Failed to add sub-chapter. Please try again.");
+            console.error("Error saving sub-chapter:", error);
+            alert("Failed to save sub-chapter. Please try again.");
+        }
+    };
+
+    const handleDeleteSubChapter = async (subChapterId: string) => {
+        if (!window.confirm("Are you sure you want to delete this sub-chapter?")) return;
+
+        try {
+            await deleteDoc(doc(db, "master sub bab", subChapterId));
+            alert("Sub-chapter deleted successfully.");
+        } catch (error) {
+            console.error("Error deleting sub-chapter:", error);
+            alert("Failed to delete sub-chapter. Please try again.");
         }
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <div className="spinner-border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="container my-5">
+        <div className="m-2">
             {course ? (
-                <>
-                    <h2 className="text-primary">{course.title}</h2>
-                    <img
-                        src={course.image || "https://via.placeholder.com/300"}
-                        alt={course.title}
-                        className="img-fluid"
-                    />
-                    <p>{course.description}</p>
-
-                    <button className="btn btn-secondary mb-4" onClick={() => navigate("/courses")}>
-                        Back to Courses
-                    </button>
-
-                    {isAdmin && (
-                        <div>
-                            <button
-                                className="btn btn-warning"
-                                onClick={() => navigate(`/course/edit/${id}`)}
-                            >
-                                Add Course
-                            </button>
-                            <button className="btn btn-danger ms-2">Delete Course</button>
-                        </div>
-                    )}
-
-                    {isAdmin && (
-                        <div className="mt-4">
-                            <h3>Add New Sub-Chapter</h3>
-                            <div className="mb-3">
-                                <label className="form-label">Sub-Chapter Name</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    name="subChapterName"
-                                    value={subChapter.subChapterName}
-                                    onChange={handleSubChapterChange}
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label className="form-label">Details</label>
-                                <textarea
-                                    className="form-control"
-                                    name="details"
-                                    rows={3}
-                                    value={subChapter.details}
-                                    onChange={handleSubChapterChange}
-                                ></textarea>
-                            </div>
-                            <button className="btn btn-primary" onClick={handleAddSubChapter}>
-                                Add Sub-Chapter
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="mt-4">
-                        <h3>Sub Chapters</h3>
-                        {subChapters.length > 0 ? (
-                            subChapters.map(sub => (
-                                <div key={sub.id} className="sub-chapter mb-3">
-                                    <h4>{sub.subChapterName}</h4>
-                                    <p>{sub.details}</p>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No sub-chapters available yet.</p>
-                        )}
+                <div className="card shadow-sm border-0">
+                    <div className="card-header bg-primary text-white">
+                        <h2 className="mb-0">{course.title}</h2>
                     </div>
-                </>
+                    <div className="card-body">
+                        <div className="d-flex flex-column flex-lg-row">
+                            <img
+                                src={course.image || "https://via.placeholder.com/300"}
+                                alt={course.title}
+                                className="img-fluid rounded mb-3 mb-lg-0 me-lg-3"
+                                style={{ maxWidth: "300px" }}
+                            />
+                            <p className="text-muted">{course.description}</p>
+                        </div>
+                        <button
+                            className="btn btn-outline-secondary mt-3"
+                            onClick={() => navigate("/courses")}
+                        >
+                            Back to Courses
+                        </button>
+
+                        {isAdmin && (
+                            <button
+                                className="btn btn-success mt-3 ms-2"
+                                onClick={() => handleModalOpen()}
+                            >
+                                Add New Sub-Chapter
+                            </button>
+                        )}
+
+                        <div className="mt-4">
+                            <h4 className="text-secondary">Sub Chapters</h4>
+                            <div className="list-group">
+                                {subChapters.length > 0 ? (
+                                    subChapters.map((sub) => (
+                                        <div
+                                            key={sub.id}
+                                            className="list-group-item d-flex justify-content-between align-items-center"
+                                        >
+                                            <div>
+                                                <h5 className="mb-1">{sub.subChapterName}</h5>
+                                                <p className="mb-1 text-muted">{sub.details}</p>
+                                            </div>
+                                            {isAdmin && (
+                                                <div>
+                                                    <button
+                                                        className="btn btn-warning btn-sm me-2"
+                                                        onClick={() => handleModalOpen(sub)}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-danger btn-sm"
+                                                        onClick={() => handleDeleteSubChapter(sub.id)}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-muted">No sub-chapters available yet.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             ) : (
-                <p>Course not found</p>
+                <div className="alert alert-danger">Course not found</div>
+            )}
+
+            {showModal && (
+                <div className="modal show d-block" role="dialog">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">
+                                    {isEditMode ? "Edit Sub-Chapter" : "Add New Sub-Chapter"}
+                                </h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={handleModalClose}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <label className="form-label">Sub-Chapter Name</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="subChapterName"
+                                        value={currentSubChapter.subChapterName}
+                                        onChange={handleSubChapterChange}
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Details</label>
+                                    <textarea
+                                        className="form-control"
+                                        name="details"
+                                        rows={3}
+                                        value={currentSubChapter.details}
+                                        onChange={handleSubChapterChange}
+                                    ></textarea>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleModalClose}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={handleSaveSubChapter}
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
