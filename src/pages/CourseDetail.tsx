@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
     doc,
     getDoc,
@@ -27,6 +27,7 @@ const CourseDetail: React.FC = () => {
         subChapterName: "",
         details: "",
     });
+    const [reloadFlag, setReloadFlag] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -72,7 +73,7 @@ const CourseDetail: React.FC = () => {
 
         validateUserRole();
         fetchCourse();
-    }, [id]);
+    }, [id, reloadFlag]);
 
     const handleLogout = async () => {
         try {
@@ -118,6 +119,7 @@ const CourseDetail: React.FC = () => {
                     details: currentSubChapter.details,
                 });
                 alert("Sub-chapter updated successfully.");
+                setReloadFlag((prev) => !prev);
             } else {
                 await addDoc(collection(db, "master sub bab"), {
                     courseId: id,
@@ -125,6 +127,7 @@ const CourseDetail: React.FC = () => {
                     details: currentSubChapter.details,
                 });
                 alert("Sub-chapter added successfully.");
+                setReloadFlag((prev) => !prev);
             }
             setShowModal(false);
         } catch (error) {
@@ -198,7 +201,14 @@ const CourseDetail: React.FC = () => {
                                             className="list-group-item d-flex justify-content-between align-items-center"
                                         >
                                             <div>
-                                                <h5 className="mb-1">{sub.subChapterName}</h5>
+                                                <h5 className="mb-1">
+                                                    <Link
+                                                        to={`/subchapter/${sub.id}`}
+                                                        className="text-decoration-none text-primary"
+                                                    >
+                                                        {sub.subChapterName}
+                                                    </Link>
+                                                </h5>
                                                 <p className="mb-1 text-muted">{sub.details}</p>
                                             </div>
                                             {isAdmin && (
@@ -223,6 +233,7 @@ const CourseDetail: React.FC = () => {
                                     <p className="text-muted">No sub-chapters available yet.</p>
                                 )}
                             </div>
+
                         </div>
                     </div>
                 </div>
