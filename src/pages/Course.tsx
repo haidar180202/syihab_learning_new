@@ -122,14 +122,14 @@ const Course: React.FC = () => {
             <Sidebar />
             <div className="flex-grow-1">
                 <Header />
-                <main className="container my-5">
-                    <div className="container py-5">
-                        <div className="row mb-4">
-                            <div className="col-12 col-md-6">
-                                <h2 className="text-primary">Courses</h2>
-                                <p className="text-muted">Find the best courses to boost your skills</p>
-                            </div>
-                            <div className="col-12 col-md-6 d-flex justify-content-end">
+                <main className="m-5">
+                    <div className="row mb-4 align-items-center">
+                        <div className="col-12 col-md-6">
+                            <h3 className="text-primary">Courses</h3>
+                            <p className="text-muted">Find the best courses to boost your skills</p>
+                        </div>
+                        <div className="col-12 col-md-6 d-flex justify-content-end">
+                            <div className="d-flex align-items-center">
                                 <input
                                     type="text"
                                     className="form-control me-2"
@@ -139,7 +139,7 @@ const Course: React.FC = () => {
                                 />
                                 {isAdmin && (
                                     <button
-                                        className="btn btn-success"
+                                        className="btn btn-success ms-2"
                                         onClick={() => setShowModal(true)}
                                     >
                                         Add Course
@@ -147,53 +147,53 @@ const Course: React.FC = () => {
                                 )}
                             </div>
                         </div>
+                    </div>
 
-                        {loading ? (
-                            <div className="text-center">
-                                <div className="spinner-border text-primary" role="status">
-                                    <span className="visually-hidden">Loading...</span>
-                                </div>
+                    {loading ? (
+                        <div className="text-center">
+                            <div className="spinner-border text-primary" role="status">
+                                <span className="visually-hidden">Loading...</span>
                             </div>
-                        ) : (
-                            <div className="row">
-                                {filteredCourses.map((course) => (
-                                    <div className="col-12 col-md-4 mb-4" key={course.id}>
-                                        <div className="card shadow-sm h-100">
-                                            <img
-                                                src={course.image || "https://via.placeholder.com/300"}
-                                                className="card-img-top"
-                                                alt={course.title}
-                                            />
-                                            <div className="card-body">
-                                                <h5 className="card-title">{course.title}</h5>
-                                                <p className="card-text">{course.description}</p>
+                        </div>
+                    ) : (
+                        <div className="row g-4">
+                            {filteredCourses.map((course) => (
+                                <div className="col-12 col-sm-6 col-lg-3" key={course.id}>
+                                    <div className="card shadow-sm h-100">
+                                        <img
+                                            src={course.image || "https://via.placeholder.com/300"}
+                                            className="card-img-top"
+                                            alt={course.title}
+                                        />
+                                        <div className="card-body">
+                                            <h5 className="card-title">{course.title}</h5>
+                                            <p className="card-text">{course.description}</p>
+                                            <Link
+                                                to={`/course/${course.id}`}
+                                                className="btn btn-primary w-100 mb-2"
+                                            >
+                                                View Details
+                                            </Link>
+                                            {isAdmin && (
                                                 <Link
-                                                    to={`/course/${course.id}`}
-                                                    className="btn btn-primary w-100"
+                                                    to={`/course/edit/${course.id}`}
+                                                    className="btn btn-secondary w-100"
                                                 >
-                                                    View Details
+                                                    Edit Course
                                                 </Link>
-                                                {isAdmin && (
-                                                    <Link
-                                                        to={`/course/edit/${course.id}`}
-                                                        className="btn btn-secondary w-100 mt-2"
-                                                    >
-                                                        Edit Course
-                                                    </Link>
-                                                )}
-                                            </div>
+                                            )}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </main>
 
                 {/* Modal for Adding Course */}
                 {showModal && (
                     <div className="modal show d-block" tabIndex={-1} role="dialog">
-                        <div className="modal-dialog" role="document">
+                        <div className="modal-dialog modal-dialog-centered" role="document">
                             <div className="modal-content">
                                 <div className="modal-header">
                                     <h5 className="modal-title">Add New Course</h5>
