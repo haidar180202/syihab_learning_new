@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, getDoc, collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
-// import { isAdmin } from "../utils/authValidation"; // Validasi akses
+import { isAuthorized } from "./auth/AuthValidation";
+
 
 const SubChapterDetail: React.FC = () => {
     const { subChapterId } = useParams();
@@ -12,6 +13,9 @@ const SubChapterDetail: React.FC = () => {
     const [content, setContent] = useState("");
     const [contentType, setContentType] = useState("text"); // "text", "image", atau "video"
     const [error, setError] = useState("");
+    const [details, setDetails] = useState<any[]>([]);
+
+    const requiredRoles = ["admin", "editor"];
 
     useEffect(() => {
         const fetchSubChapter = async () => {
@@ -27,12 +31,26 @@ const SubChapterDetail: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Error fetching sub-chapter:", error);
+            }
+        };
+
+        const fetchDetails = async () => {
+            try {
+                const collectionRef = collection(db, "master sub detail");
+                const q = query(collectionRef, where("subChapterId", "==", subChapterId));
+                const querySnapshot = await getDocs(q);
+
+                const detailsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+                setDetails(detailsData);
+            } catch (error) {
+                console.error("Error fetching details:", error);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchSubChapter();
+        fetchDetails();
     }, [subChapterId, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -55,9 +73,48 @@ const SubChapterDetail: React.FC = () => {
             setContentType("text");
             setError("");
             alert("Content added successfully!");
+            window.location.reload(); // Reload to fetch the updated data
         } catch (error) {
             console.error("Error adding content:", error);
             setError("Failed to add content. Please try again later.");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!isAuthorized(requiredRoles)) {
+            alert("Access denied. You do not have permission to perform this action.");
+            return;
+        }
+
+        try {
+            const docRef = doc(db, "master sub detail", id);
+            await deleteDoc(docRef);
+            alert("Content deleted successfully!");
+            setDetails(details.filter((detail) => detail.id !== id));
+        } catch (error) {
+            console.error("Error deleting content:", error);
+            alert("Failed to delete content. Please try again later.");
+        }
+    };
+
+    const handleEdit = async (id: string, updatedContent: string) => {
+        if (!isAuthorized(requiredRoles)) {
+            alert("Access denied. You do not have permission to perform this action.");
+            return;
+        }
+
+        try {
+            const docRef = doc(db, "master sub detail", id);
+            await updateDoc(docRef, { content: updatedContent });
+            alert("Content updated successfully!");
+            setDetails(
+                details.map((detail) =>
+                    detail.id === id ? { ...detail, content: updatedContent } : detail
+                )
+            );
+        } catch (error) {
+            console.error("Error updating content:", error);
+            alert("Failed to update content. Please try again later.");
         }
     };
 
@@ -71,9 +128,9 @@ const SubChapterDetail: React.FC = () => {
         );
     }
 
-    // if (!isAdmin()) {
-    //     return <div className="alert alert-danger">Access denied.</div>;
-    // }
+    if (!isAuthorized(requiredRoles)) {
+        return <div className="alert alert-danger">Access denied.</div>;
+    }
 
     return (
         <div className="container mt-4">
@@ -121,8 +178,32 @@ const SubChapterDetail: React.FC = () => {
             </form>
 
             <hr />
+
             <h3>Existing Contents</h3>
-            <p className="text-muted">Display logic for existing contents can be added here.</p>
+            <ul className="list-group">
+                {details.map((detail) => (
+                    <li key={detail.id} className="list-group-item">
+                        <div>
+                            <strong>{detail.contentType}:</strong> {detail.content}
+                        </div>
+                        <button
+                            className="btn btn-danger btn-sm me-2"
+                            onClick={() => handleDelete(detail.id)}
+                        >
+                            Delete
+                        </button>
+                        <button
+                            className="btn btn-warning btn-sm"
+                            onClick={() => {
+                                const updatedContent = prompt("Edit Content", detail.content);
+                                if (updatedContent) handleEdit(detail.id, updatedContent);
+                            }}
+                        >
+                            Edit
+                        </button>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };
