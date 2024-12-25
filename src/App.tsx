@@ -45,7 +45,7 @@ const App: React.FC = () => {
         />
 
         <Route
-          path="/subchapter/:subChapterId"
+          path="/course/:id/:subChapterId"
           element={
             <ProtectedRoute>
               <SubChapterDetail />

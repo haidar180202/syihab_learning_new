@@ -203,7 +203,7 @@ const CourseDetail: React.FC = () => {
                                             <div>
                                                 <h5 className="mb-1">
                                                     <Link
-                                                        to={`/subchapter/${sub.id}`}
+                                                        to={`/course/${sub.courseId}/${sub.id}`}
                                                         className="text-decoration-none text-primary"
                                                     >
                                                         {sub.subChapterName}
