@@ -4,10 +4,9 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 import { db } from "../config/firebase";
 import { isAuthorized } from "./auth/AuthValidation";
 
-
 const SubChapterDetail: React.FC = () => {
-    const { subChapterId } = useParams();
-    const navigate = useNavigate();
+    const { subChapterId } = useParams(); // Ambil subChapterId dari URL
+    const navigate = useNavigate(); // Untuk navigasi antar halaman
     const [subChapter, setSubChapter] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [content, setContent] = useState("");
@@ -15,9 +14,22 @@ const SubChapterDetail: React.FC = () => {
     const [error, setError] = useState("");
     const [details, setDetails] = useState<any[]>([]);
 
-    const requiredRoles = ["admin", "editor"];
+    const requiredRoles = ["admin", "editor"]; // Hak akses yang diperlukan
 
     useEffect(() => {
+        // Fungsi untuk memvalidasi pola subChapterId
+        const isValidSubChapterId = (id: string | undefined) => {
+            // Contoh validasi: hanya alfanumerik sepanjang 20 karakter
+            return id && /^[A-Za-z0-9]{20}$/.test(id);
+        };
+
+        // Jika subChapterId tidak valid, arahkan ke halaman 404
+        if (!isValidSubChapterId(subChapterId)) {
+            navigate("/404");
+            return;
+        }
+
+        // Fetch data sub-chapter dari Firestore
         const fetchSubChapter = async () => {
             try {
                 const docRef = doc(db, "master sub bab", subChapterId || "");
@@ -34,6 +46,7 @@ const SubChapterDetail: React.FC = () => {
             }
         };
 
+        // Fetch detail konten terkait sub-chapter dari Firestore
         const fetchDetails = async () => {
             try {
                 const collectionRef = collection(db, "master sub detail");
@@ -53,6 +66,7 @@ const SubChapterDetail: React.FC = () => {
         fetchDetails();
     }, [subChapterId, navigate]);
 
+    // Fungsi untuk menambahkan konten baru
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -73,13 +87,14 @@ const SubChapterDetail: React.FC = () => {
             setContentType("text");
             setError("");
             alert("Content added successfully!");
-            window.location.reload(); // Reload to fetch the updated data
+            window.location.reload(); // Reload halaman untuk data terbaru
         } catch (error) {
             console.error("Error adding content:", error);
             setError("Failed to add content. Please try again later.");
         }
     };
 
+    // Fungsi untuk menghapus konten
     const handleDelete = async (id: string) => {
         if (!isAuthorized(requiredRoles)) {
             alert("Access denied. You do not have permission to perform this action.");
@@ -97,6 +112,7 @@ const SubChapterDetail: React.FC = () => {
         }
     };
 
+    // Fungsi untuk mengedit konten
     const handleEdit = async (id: string, updatedContent: string) => {
         if (!isAuthorized(requiredRoles)) {
             alert("Access denied. You do not have permission to perform this action.");
@@ -118,6 +134,7 @@ const SubChapterDetail: React.FC = () => {
         }
     };
 
+    // Tampilkan spinner jika data masih dalam proses loading
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center vh-100">
@@ -128,10 +145,12 @@ const SubChapterDetail: React.FC = () => {
         );
     }
 
+    // Jika user tidak memiliki hak akses
     if (!isAuthorized(requiredRoles)) {
         return <div className="alert alert-danger">Access denied.</div>;
     }
 
+    // Tampilan utama halaman
     return (
         <div className="container mt-4">
             <h1 className="text-primary">{subChapter?.subChapterName}</h1>
