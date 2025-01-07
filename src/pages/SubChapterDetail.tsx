@@ -147,7 +147,28 @@ const SubChapterDetail: React.FC = () => {
 
     // Jika user tidak memiliki hak akses
     if (!isAuthorized(requiredRoles)) {
-        return <div className="alert alert-danger">Access denied.</div>;
+        return (
+            <div className="m-4 card">
+                <div className="m-2">
+                    <h4 className="text-primary">{subChapter?.subChapterName}</h4>
+                    <p className="text-muted">{subChapter?.details}</p>
+
+                    <hr />
+                    {details.map((detail) => (
+                        <div key={detail.id} className="list-group-item">
+                            <div>
+                                {/* <strong>{detail.contentType}:</strong>  */}
+
+                                {detail.contentType == 'text' ? (
+                                <div className="text-dark m-2">{detail.content}</div>
+                                ) : ""}
+                                
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     // Tampilan utama halaman
