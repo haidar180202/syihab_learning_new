@@ -150,6 +150,7 @@ const SubChapterDetail: React.FC = () => {
         return (
             <div className="m-4 card">
                 <div className="m-2">
+                    
                     <h4 className="text-primary">{subChapter?.subChapterName}</h4>
                     <p className="text-muted">{subChapter?.details}</p>
 

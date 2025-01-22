@@ -8,6 +8,7 @@ import Course from "./pages/Course";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import CourseDetail from "./pages/CourseDetail";
 import SubChapterDetail from "./pages/SubChapterDetail";
+import NoteFound from "./pages/NoteFound";
 
 
 const App: React.FC = () => {
@@ -49,6 +50,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <SubChapterDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/404"
+          element={
+            <ProtectedRoute>
+              <NoteFound/>
             </ProtectedRoute>
           }
         />
