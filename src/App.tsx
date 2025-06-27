@@ -9,12 +9,14 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import CourseDetail from "./pages/CourseDetail";
 import SubChapterDetail from "./pages/SubChapterDetail";
 import NoteFound from "./pages/NoteFound";
+import ProfileHome from "./pages/ProfileHome";
 
 
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<ProfileHome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
