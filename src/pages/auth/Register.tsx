@@ -102,21 +102,7 @@ const Register = () => {
               required
             />
           </div>
-          <div className="mb-3">
-            <label htmlFor="role" className="form-label">Role</label>
-            <select
-              className="form-select form-select-lg"
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-              <option value="moderator">Moderator</option>
-            </select>
-          </div>
+        
           <button type="submit" className="btn btn-primary btn-lg w-100" disabled={loading}>
             {loading ? "Registering..." : "Create Account"}
           </button>
