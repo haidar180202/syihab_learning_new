@@ -17,11 +17,11 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/" element={<ProfileHome />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
         <Route
-          path="/dashboard"
+          path="dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
@@ -30,7 +30,7 @@ const App: React.FC = () => {
         />
 
         <Route
-          path="/courses"
+          path="courses"
           element={
             <ProtectedRoute>
               <Course />
@@ -39,7 +39,7 @@ const App: React.FC = () => {
         />
 
         <Route
-          path="/course/:id"
+          path="course/:id"
           element={
             <ProtectedRoute>
               <CourseDetail />
@@ -48,7 +48,7 @@ const App: React.FC = () => {
         />
 
         <Route
-          path="/course/:id/:subChapterId"
+          path="course/:id/:subChapterId"
           element={
             <ProtectedRoute>
               <SubChapterDetail />
@@ -57,7 +57,7 @@ const App: React.FC = () => {
         />
 
         <Route
-          path="/404"
+          path="404"
           element={
             <ProtectedRoute>
               <NoteFound/>
