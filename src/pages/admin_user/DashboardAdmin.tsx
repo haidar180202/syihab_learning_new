@@ -27,7 +27,7 @@ const DashboardAdmin: React.FC = () => {
       const querySnapshot = await getDocs(collection(db, "users"));
       querySnapshot.forEach((doc) => {
         const data = doc.data() as User;
-        usersList.push({ id: doc.id, ...data });
+        usersList.push({ ...data, id: doc.id });
       });
       setUsers(usersList);
     } catch (err) {
